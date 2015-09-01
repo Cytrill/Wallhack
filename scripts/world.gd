@@ -1,4 +1,3 @@
-
 extends Node2D
 
 # member variables here, example:
