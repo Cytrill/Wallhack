@@ -19,6 +19,13 @@ var label = preload("res://label.scn")
 func _ready():
 	# Initialization here
 	get_node("Sprite").set_modulate(color)
+	
+	var cr = get_node("Particles").get_color_ramp()
+	var crc = cr.get_colors()
+	crc.set(0, color)
+	cr.set_colors(crc)
+	get_node("Particles").set_color_ramp(cr)
+	
 	old_position = get_global_pos()
 	set_fixed_process(true)
 	next_gap = rand_range(3, 6)
@@ -69,6 +76,7 @@ func _fixed_process(delta):
 
 func die():
 	alive = false
+	get_node("Particles").set_emitting(false)
 	var new_label = label.instance()
 	new_label.set_text("I survived for %.1f seconds!" % totaltime)
 	get_parent().add_child(new_label)
