@@ -1,6 +1,7 @@
 extends Node2D
 
 var paused = true
+var pause_pressed = false
 
 func _ready():
 	# Initialization here
@@ -21,9 +22,11 @@ func _ready():
 	pass
 
 func _fixed_process(delta):
-	if Input.is_action_pressed("game_pause") && paused:
-		get_tree().set_pause(false)
-		paused = false
-	elif Input.is_action_pressed("game_pause") && !paused:
-		get_tree().set_pause(true)
-		paused = true
+	if Input.is_action_pressed("game_pause") && !pause_pressed:
+		if paused:
+			get_tree().set_pause(false)
+			paused = false
+		elif !paused:
+			get_tree().set_pause(true)
+			paused = true
+	pause_pressed = Input.is_action_pressed("game_pause")
