@@ -9,9 +9,6 @@ func _ready():
 	var viewport_width = get_viewport_rect().end.x
 	var viewport_height = get_viewport_rect().end.y
 	
-	#get_node("Background").get_texture().set_size_override(Vector2(viewport_width, viewport_height))
-	#get_node("Background").set_z(-1)
-	
 	for player in get_children():
 		randomize()
 		print(str(player.get_type()))
@@ -19,9 +16,10 @@ func _ready():
 			player.set_global_pos(Vector2(rand_range(20, viewport_width - 20), rand_range(20, viewport_height - 20)))
 			player.set_rot(rand_range(-3.1415, 3.1415))
 	get_tree().set_pause(true)
-	pass
 
 func _fixed_process(delta):
+	#get_node("Background").set_region_rect(get_viewport_rect())
+	get_node("Background").set_texture(get_node("TraceViewport").get_render_target_texture())
 	if Input.is_action_pressed("game_pause") && !pause_pressed:
 		if paused:
 			get_tree().set_pause(false)
