@@ -19,7 +19,7 @@ var deathtimer = 0
 
 # Config
 var rot_speed = 2
-var move_speed = 30
+var move_speed = 60
 var viewport_boundary_offset = 4
 
 # Preloads
@@ -47,7 +47,7 @@ func _ready():
 	
 	#old_position = get_global_pos()
 	set_fixed_process(true)
-	next_gap = rand_range(3, 6)
+	next_gap = rand_range(1, 3)
 	gap_size = rand_range(0.2, 0.8)
 
 func _fixed_process(delta):
@@ -69,12 +69,14 @@ func _fixed_process(delta):
 			if painting:
 				player_trace.set_global_pos(get_global_pos())
 				var new_trace = trace_collider.instance()
-				get_parent().add_child(new_trace)
-				new_trace.set_global_pos(get_global_pos())
-				trace_timer = 0
+				#get_parent().add_child(new_trace)
+				#new_trace.set_global_pos(get_global_pos())
+				#trace_timer = 0
+				get_node("../PlayerWalls").add_shape(new_trace.get_shape(0), get_global_transform())
+				new_trace.queue_free()
 		
 		if (gap_timer > next_gap) && painting:
-			next_gap = rand_range(3, 6)
+			next_gap = rand_range(1, 3)
 			gap_timer = 0
 			painting = false
 			
