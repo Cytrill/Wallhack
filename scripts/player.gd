@@ -2,6 +2,8 @@ extends RigidBody2D
 
 export var player_color = Color(1, 0, 0)
 export var player_number = 0
+export var joystick_number = -1
+export var player_name = ""
 
 # State
 var alive = true
@@ -21,6 +23,7 @@ var deathtimer = 0
 var rot_speed = 2
 var move_speed = 60
 var viewport_boundary_offset = 4
+var joy_tresh = 0.5
 
 # Preloads
 var trace = preload("res://trace.scn")
@@ -38,7 +41,7 @@ func _ready():
 	cr.set_colors(crc)
 	get_node("Particles").set_color_ramp(cr)
 	
-	trace_viewport = get_node("../TraceViewport")
+	trace_viewport = get_node("/root/World/TraceViewport")
 	player_trace = trace.instance()
 	player_trace.set_name("trace_" + str(player_number))
 	trace_viewport.add_child(player_trace)
@@ -51,13 +54,15 @@ func _ready():
 	gap_size = rand_range(0.2, 0.8)
 
 func _fixed_process(delta):
+	if get_node("/root/World/").get_game_state() != 1:
+		return
 	if !alive && !label_hidden:
 		deathtimer += delta
 		if deathtimer > 5:
 			label_hidden = true
-			var label_node = get_node("../death_label_"+str(player_number))
+			#var label_node = get_node("../death_label_"+str(player_number))
 			#get_parent().remove_child(label_node)
-			label_node.queue_free()
+			#label_node.queue_free()
 	elif alive:
 		trace_timer += delta
 		gap_timer += delta
@@ -72,7 +77,7 @@ func _fixed_process(delta):
 				#get_parent().add_child(new_trace)
 				#new_trace.set_global_pos(get_global_pos())
 				#trace_timer = 0
-				get_node("../PlayerWalls").add_shape(new_trace.get_shape(0), get_global_transform())
+				get_node("/root/World/PlayerWalls").add_shape(new_trace.get_shape(0), get_global_transform())
 				new_trace.queue_free()
 		
 		if (gap_timer > next_gap) && painting:
@@ -96,10 +101,14 @@ func _fixed_process(delta):
 		if get_pos().x > get_viewport_rect().end.x-viewport_boundary_offset || get_pos().x < viewport_boundary_offset || get_pos().y > get_viewport_rect().end.y-viewport_boundary_offset || get_pos().y < viewport_boundary_offset:
 			die()
 
-		if (Input.is_action_pressed("left_"+str(player_number))):
+		"""if (Input.is_action_pressed("left_"+str(player_number))):
 			set_rot(get_rot()+(rot_speed*delta))
 		elif (Input.is_action_pressed("right_"+str(player_number))):
+			set_rot(get_rot()-(rot_speed*delta))"""
+		if Input.get_joy_axis(joystick_number, 0) > joy_tresh:
 			set_rot(get_rot()-(rot_speed*delta))
+		elif Input.get_joy_axis(joystick_number, 0) < -joy_tresh:
+			set_rot(get_rot()+(rot_speed*delta))
 
 func die():
 	alive = false
