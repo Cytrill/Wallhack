@@ -13,7 +13,8 @@ var state_time_elapsed = 0
 var time_elapsed = 0
 
 var countdown_started = false
-var timeout_time = 5 #In Seconds
+var timeout_time = 5
+ #In Seconds
 var time_remaining = timeout_time
 
 export var collision = {}
@@ -38,6 +39,8 @@ func _ready():
 	
 	viewport_width = get_viewport_rect().end.x
 	viewport_height = get_viewport_rect().end.y
+	
+	get_node("Background").set_region_rect(get_viewport_rect())
 	
 	"""for player in get_children():
 		randomize()
@@ -85,35 +88,77 @@ func get_game_state():
 	return game_state
 
 
-func gs_running(delta):
-	if get_node("/root/World/Countdown").is_visible():
-		get_node("/root/World/Countdown").hide()
-	get_node("Background").set_region_rect(get_viewport_rect())
+func new_game():
+	for tr_obj in get_node("TraceViewport").get_children():
+		if tr_obj.get_name().begins_with("trace_"):
+			tr_obj.queue_free()
+	for pl_obj in get_node("Players").get_children():
+		pl_obj.queue_free()
+	
+	time_elapsed = 0
+	countdown_started = false
+	time_remaining = timeout_time
+	collision = {}
+	pl_number = 0
+	get_node("TraceViewport").render_target_clear()
+	get_node("Background").set_texture(null)
 	get_node("Background").set_texture(get_node("TraceViewport").get_render_target_texture())
+	next_game_state = GS_WAIT_FOR_PLAYERS
+
+
+var game_over_time = 0
+func gs_game_over(delta):
+	if game_over_time < 10:
+		game_over_time += delta
+	else:
+		game_over_time = 0
+		new_game()
+
+
+func gs_running(delta):
+	if get_node("label_state").is_visible():
+		get_node("label_state").hide()
+	get_node("Background").set_texture(get_node("TraceViewport").get_render_target_texture())
+	
+	# Check Game Over
+	var alive = 0
+	var pl_alive = ""
+	for pl_object in get_node("Players").get_children():
+		if pl_object.alive:
+			alive += 1
+			pl_alive = pl_object.player_name
+	if alive <= 1:
+		next_game_state = GS_GAME_OVER
+		get_node("label_state").show()
+		get_node("label_state").set_text("Game Over! " + pl_alive + " won! Resetting...")
 	
 	# Check collision
 	for pl_object in get_node("Players").get_children():
-		if collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y))):
-			if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y))] == COLL:
-				pl_object.die()
-		elif collision.has(Vector2(round(pl_object.get_global_pos().x+1), round(pl_object.get_global_pos().y))):
-			if collision[Vector2(round(pl_object.get_global_pos().x+1), round(pl_object.get_global_pos().y))] == COLL:
-				pl_object.die()
-		elif collision.has(Vector2(round(pl_object.get_global_pos().x-1), round(pl_object.get_global_pos().y))):
-			if collision[Vector2(round(pl_object.get_global_pos().x-1), round(pl_object.get_global_pos().y))] == COLL:
-				pl_object.die()
-		elif collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y+1))):
-			if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y+1))] == COLL:
-				pl_object.die()
-		elif collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-1))):
-			if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-1))] == COLL:
-				pl_object.die()
+		if pl_object.alive:
+			if collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y))):
+				if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y))] == COLL:
+					pl_object.die()
+			elif collision.has(Vector2(round(pl_object.get_global_pos().x+1), round(pl_object.get_global_pos().y))):
+				if collision[Vector2(round(pl_object.get_global_pos().x+1), round(pl_object.get_global_pos().y))] == COLL:
+					pl_object.die()
+			elif collision.has(Vector2(round(pl_object.get_global_pos().x-1), round(pl_object.get_global_pos().y))):
+				if collision[Vector2(round(pl_object.get_global_pos().x-1), round(pl_object.get_global_pos().y))] == COLL:
+					pl_object.die()
+			elif collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y+1))):
+				if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y+1))] == COLL:
+					pl_object.die()
+			elif collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-1))):
+				if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-1))] == COLL:
+					pl_object.die()
 
 
 func gs_waitforplayers(delta):
 	if (prev_game_state == GS_WAIT_FOR_PLAYERS):
 		time_elapsed += delta
 	next_game_state = GS_WAIT_FOR_PLAYERS
+	
+	get_node("label_state").show()
+	get_node("label_state").set_text("Press blue button to join.")
 	
 	#Reset countdown after two Players have joined the game:
 	if (get_node("Players").get_child_count() >= 2):
@@ -129,11 +174,11 @@ func gs_waitforplayers(delta):
 	if (time_remaining <= 0):
 		time_elapsed = 0 #Reset Timer
 		next_game_state = GS_RUNNING
-		get_node("Countdown").hide()
+		get_node("label_state").hide()
 	elif (countdown_started):
 		var m = floor(time_remaining / 60)
 		var s = (int(floor(time_remaining)) % 60)
-		get_node("Countdown").set_text(str(m) + ":" + str(s))
+		get_node("label_state").set_text(str(m) + ":" + str(s))
 	
 	for i in range(0,1024):
 			if Input.is_joy_button_pressed(i, 0):
@@ -143,7 +188,8 @@ func gs_waitforplayers(delta):
 					print(cytrill.get_name(i) + " has joined the game!")
 					var player = pl_player.instance()
 					player.set_name(cytrill.get_name(i))
-					player.set_global_pos(Vector2(rand_range(20, viewport_width - 20), rand_range(20, viewport_height - 20)))
+					player.get_node("name_label").set_text(cytrill.get_name(i))
+					player.set_global_pos(Vector2(rand_range(50, viewport_width - 50), rand_range(50, viewport_height - 50)))
 					player.set_rot(rand_range(-3.1415, 3.1415))
 					player.player_name = cytrill.get_name(i)
 					player.player_color = Color(colarray[pl_number].r*255, colarray[pl_number].g*255, colarray[pl_number].b*255)
