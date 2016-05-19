@@ -13,7 +13,7 @@ var state_time_elapsed = 0
 var time_elapsed = 0
 
 var countdown_started = false
-var timeout_time = 5
+var timeout_time = 15
  #In Seconds
 var time_remaining = timeout_time
 
@@ -197,5 +197,5 @@ func gs_waitforplayers(delta):
 					player.player_number = pl_number
 					get_node("Players").add_child(player)
 					cytrill.set_led(i, 0, colarray[pl_number].r*255, colarray[pl_number].g*255, colarray[pl_number].b*255, 1)
-					cytrill.set_led(i, 1, 0, 0, 0, 0)
+					cytrill.set_led(i, 1, colarray[pl_number].r*255, colarray[pl_number].g*255, colarray[pl_number].b*255, 1)
 					pl_number += 1
