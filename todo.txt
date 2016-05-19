@@ -1,0 +1,6 @@
+collision with better performance
+borders
+switch off cytrill leds
+restart
+show nicknames
+scoreboard

@@ -1,15 +1,15 @@
-extends RigidBody2D
+extends Node2D
 
 export var player_color = Color(1, 0, 0)
 export var player_number = 0
 export var joystick_number = -1
 export var player_name = ""
+var old_pos
 
 # State
 var alive = true
 var painting = true
 var label_hidden = false
-#var old_position
 
 # Timers
 var totaltime = 0
@@ -27,7 +27,6 @@ var joy_tresh = 0.5
 
 # Preloads
 var trace = preload("res://trace.scn")
-var trace_collider = preload("res://trace_collider.scn")
 var label = preload("res://label.scn")
 var trace_viewport = null
 var player_trace = null
@@ -41,6 +40,8 @@ func _ready():
 	cr.set_colors(crc)
 	get_node("Particles").set_color_ramp(cr)
 	
+	old_pos = Vector2(round(get_global_pos().x), round(get_global_pos().y))
+	
 	trace_viewport = get_node("/root/World/TraceViewport")
 	player_trace = trace.instance()
 	player_trace.set_name("trace_" + str(player_number))
@@ -48,7 +49,6 @@ func _ready():
 	player_trace.set_global_pos(get_global_pos())
 	player_trace.get_node("Sprite").set_modulate(player_color)
 	
-	#old_position = get_global_pos()
 	set_fixed_process(true)
 	next_gap = rand_range(1, 3)
 	gap_size = rand_range(0.2, 0.8)
@@ -64,21 +64,20 @@ func _fixed_process(delta):
 			#get_parent().remove_child(label_node)
 			#label_node.queue_free()
 	elif alive:
+		# Update position?
+		var new_pos = Vector2(round(get_global_pos().x), round(get_global_pos().y))
+		if painting && new_pos != old_pos:
+			get_node("/root/World").collision[old_pos] = 1
+			old_pos = new_pos
+		
 		trace_timer += delta
 		gap_timer += delta
 		totaltime += delta
 		randomize()
 		
 		if (trace_timer > 0.05):
-			#old_position = get_global_pos()
 			if painting:
 				player_trace.set_global_pos(get_global_pos())
-				var new_trace = trace_collider.instance()
-				#get_parent().add_child(new_trace)
-				#new_trace.set_global_pos(get_global_pos())
-				#trace_timer = 0
-				get_node("/root/World/PlayerWalls").add_shape(new_trace.get_shape(0), get_global_transform())
-				new_trace.queue_free()
 		
 		if (gap_timer > next_gap) && painting:
 			next_gap = rand_range(1, 3)
@@ -93,18 +92,10 @@ func _fixed_process(delta):
 		var move1 = Vector2(move_speed*delta, move_speed*delta)
 		var move2 = move1.rotated(get_rot())
 		set_pos(get_pos()+move2)
-
-		#if (totaltime > 1):
-		for body in get_colliding_bodies():
-			die()
 	
 		if get_pos().x > get_viewport_rect().end.x-viewport_boundary_offset || get_pos().x < viewport_boundary_offset || get_pos().y > get_viewport_rect().end.y-viewport_boundary_offset || get_pos().y < viewport_boundary_offset:
 			die()
-
-		"""if (Input.is_action_pressed("left_"+str(player_number))):
-			set_rot(get_rot()+(rot_speed*delta))
-		elif (Input.is_action_pressed("right_"+str(player_number))):
-			set_rot(get_rot()-(rot_speed*delta))"""
+			
 		if Input.get_joy_axis(joystick_number, 0) > joy_tresh:
 			set_rot(get_rot()-(rot_speed*delta))
 		elif Input.get_joy_axis(joystick_number, 0) < -joy_tresh:
@@ -114,7 +105,7 @@ func die():
 	alive = false
 	get_node("Particles").set_emitting(false)
 	get_node("ParticlesDying").set_emitting(true)
-	var new_label = label.instance()
+	"""var new_label = label.instance()
 	new_label.set_name("death_label_"+str(player_number))
 	new_label.set_text("I survived for %.1f seconds!" % totaltime)
 	get_parent().add_child(new_label)
@@ -123,4 +114,4 @@ func die():
 		label_pos.x = label_pos.x - new_label.get_size().x
 	if (label_pos.y > (get_viewport_rect().end.y - 20)):
 		label_pos.y = label_pos.y - new_label.get_size().y
-	new_label.set_pos(label_pos)
+	new_label.set_pos(label_pos)"""

@@ -13,8 +13,12 @@ var state_time_elapsed = 0
 var time_elapsed = 0
 
 var countdown_started = false
-var timeout_time = 30 #In Seconds
+var timeout_time = 5 #In Seconds
 var time_remaining = timeout_time
+
+export var collision = {}
+const FREE = 0
+const COLL = 1
 
 var viewport_width
 var viewport_height
@@ -67,8 +71,6 @@ func _fixed_process(delta):
 		gs_pause(delta)
 	
 	"""
-	#get_node("Background").set_region_rect(get_viewport_rect())
-	get_node("Background").set_texture(get_node("TraceViewport").get_render_target_texture())
 	if Input.is_action_pressed("game_pause") && !pause_pressed:
 		if paused:
 			get_tree().set_pause(false)
@@ -88,6 +90,24 @@ func gs_running(delta):
 		get_node("/root/World/Countdown").hide()
 	get_node("Background").set_region_rect(get_viewport_rect())
 	get_node("Background").set_texture(get_node("TraceViewport").get_render_target_texture())
+	
+	# Check collision
+	for pl_object in get_node("Players").get_children():
+		if collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y))):
+			if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y))] == COLL:
+				pl_object.die()
+		elif collision.has(Vector2(round(pl_object.get_global_pos().x+1), round(pl_object.get_global_pos().y))):
+			if collision[Vector2(round(pl_object.get_global_pos().x+1), round(pl_object.get_global_pos().y))] == COLL:
+				pl_object.die()
+		elif collision.has(Vector2(round(pl_object.get_global_pos().x-1), round(pl_object.get_global_pos().y))):
+			if collision[Vector2(round(pl_object.get_global_pos().x-1), round(pl_object.get_global_pos().y))] == COLL:
+				pl_object.die()
+		elif collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y+1))):
+			if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y+1))] == COLL:
+				pl_object.die()
+		elif collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-1))):
+			if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-1))] == COLL:
+				pl_object.die()
 
 
 func gs_waitforplayers(delta):
@@ -129,12 +149,7 @@ func gs_waitforplayers(delta):
 					player.player_color = Color(colarray[pl_number].r*255, colarray[pl_number].g*255, colarray[pl_number].b*255)
 					player.joystick_number = i
 					player.player_number = pl_number
-					#last_team_assigend+=1
-					#if (last_team_assigend > 3):
-					#	last_team_assigend = 0
-					#player.team = last_team_assigend
 					get_node("Players").add_child(player)
-					#player.init_player()
 					cytrill.set_led(i, 0, colarray[pl_number].r*255, colarray[pl_number].g*255, colarray[pl_number].b*255, 1)
 					cytrill.set_led(i, 1, 0, 0, 0, 0)
 					pl_number += 1
