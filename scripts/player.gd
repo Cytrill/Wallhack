@@ -91,6 +91,7 @@ func _fixed_process(delta):
 		if Input.is_joy_button_pressed(joystick_number, 1) && boost_available:
 			boost_available = false
 			move_speed = boost_speed
+			get_node("/root/World/Sounds").play("boost")
 		if !boost_available && move_speed == boost_speed && boost_timer < boost_max_time:
 			boost_timer += delta
 		elif !boost_available && move_speed == boost_speed && boost_timer >= boost_max_time:
@@ -131,6 +132,7 @@ func _fixed_process(delta):
 			set_rot(get_rot()+(rot_speed*delta))
 
 func die():
+	get_node("/root/World/Sounds").play("explosion")
 	alive = false
 	#get_node("name_label").show()
 	get_node("Particles").set_emitting(false)

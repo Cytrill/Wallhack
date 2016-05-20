@@ -25,8 +25,8 @@ var viewport_width
 var viewport_height
 var pl_number = 0
 var pl_player = preload("res://player.scn")
-const colarray = [Color(1, 0, 0), Color(0, 1, 0), Color(0, 0, 1), Color(1, 1, 0), Color(0, 1, 1), Color(1, 0, 1),
-	Color(0.5, 0, 0), Color(0, 0.5, 0), Color(0, 0, 0.5), Color(0.5, 0.5, 0), Color(0, 0.5, 0.5), Color(0.5, 0, 0.5),
+const colarray = [Color(1, 0, 0), Color(0, 1, 0), Color(0.2, 0.4, 1), Color(1, 1, 0), Color(0, 1, 1), Color(1, 0, 1),
+	Color(0.5, 0, 0), Color(0, 0.5, 0), Color(0.5, 0.5, 0.5), Color(0.5, 0.5, 0), Color(0, 0.5, 0.5), Color(0.5, 0, 0.5),
 	Color(1, 0.5, 0), Color(0, 1, 0.5), Color(1, 0, 0.5), Color(0.5, 1, 0), Color(0, 0.5, 1), Color(0.5, 0, 1)]
 
 #var paused = true
@@ -130,7 +130,7 @@ func gs_running(delta):
 	if alive <= 1:
 		next_game_state = GS_GAME_OVER
 		get_node("label_state").show()
-		get_node("label_state").set_text("Game Over! " + pl_alive + " won! Resetting...")
+		get_node("label_state").set_text("Game Over! " + pl_alive + " won!")
 	
 	# Check collision
 	for pl_object in get_node("Players").get_children():
@@ -150,6 +150,18 @@ func gs_running(delta):
 			elif collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-1))):
 				if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-1))] == COLL:
 					pl_object.die()
+			"""elif collision.has(Vector2(round(pl_object.get_global_pos().x+2), round(pl_object.get_global_pos().y))):
+				if collision[Vector2(round(pl_object.get_global_pos().x+2), round(pl_object.get_global_pos().y))] == COLL:
+					pl_object.die()
+			elif collision.has(Vector2(round(pl_object.get_global_pos().x-2), round(pl_object.get_global_pos().y))):
+				if collision[Vector2(round(pl_object.get_global_pos().x-2), round(pl_object.get_global_pos().y))] == COLL:
+					pl_object.die()
+			elif collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y+2))):
+				if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y+2))] == COLL:
+					pl_object.die()
+			elif collision.has(Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-2))):
+				if collision[Vector2(round(pl_object.get_global_pos().x), round(pl_object.get_global_pos().y-2))] == COLL:
+					pl_object.die()"""
 
 
 func gs_waitforplayers(delta):
@@ -176,9 +188,14 @@ func gs_waitforplayers(delta):
 		next_game_state = GS_RUNNING
 		get_node("label_state").hide()
 	elif (countdown_started):
-		var m = floor(time_remaining / 60)
+		var m = str(floor(time_remaining / 60))
 		var s = (int(floor(time_remaining)) % 60)
-		get_node("label_state").set_text(str(m) + ":" + str(s))
+		var ss = ""
+		if s < 10:
+			ss = "0"+str(s)
+		else:
+			ss = str(s)
+		get_node("label_state").set_text(m + ":" + ss)
 	
 	for i in range(0,1024):
 			if Input.is_joy_button_pressed(i, 0):
@@ -192,7 +209,7 @@ func gs_waitforplayers(delta):
 					player.set_global_pos(Vector2(rand_range(50, viewport_width - 50), rand_range(50, viewport_height - 50)))
 					player.set_rot(rand_range(-3.1415, 3.1415))
 					player.player_name = cytrill.get_name(i)
-					player.player_color = Color(colarray[pl_number].r*255, colarray[pl_number].g*255, colarray[pl_number].b*255)
+					player.player_color = Color(colarray[pl_number].r, colarray[pl_number].g, colarray[pl_number].b)
 					player.joystick_number = i
 					player.player_number = pl_number
 					get_node("Players").add_child(player)
