@@ -13,7 +13,7 @@ var state_time_elapsed = 0
 var time_elapsed = 0
 
 var countdown_started = false
-var timeout_time = 15
+var timeout_time = 3
  #In Seconds
 var time_remaining = timeout_time
 
@@ -128,6 +128,22 @@ func gs_running(delta):
 			alive += 1
 			pl_alive = pl_object.player_name
 	if alive <= 1:
+
+		if (next_game_state != GS_GAME_OVER && !get_node("label_state").is_visible()):
+			# start screen capture
+			#get_viewport().queue_screen_capture()
+			get_node("TraceViewport").queue_screen_capture()
+			yield(get_tree(), "idle_frame")
+			yield(get_tree(), "idle_frame")
+			
+			# get screen capture
+			#var capture = get_viewport().get_screen_capture()
+			var capture = get_node("TraceViewport").get_screen_capture()
+			print("Screen Width: "+str(capture.get_width()))
+			# save to a file
+			if (capture.get_width() > 0):
+				capture.save_png("user://screenshot"+str(OS.get_unix_time())+".png")
+		
 		next_game_state = GS_GAME_OVER
 		get_node("label_state").show()
 		get_node("label_state").set_text("Game Over! " + pl_alive + " won!")
@@ -199,16 +215,16 @@ func gs_waitforplayers(delta):
 	
 	for i in range(0,1024):
 			if Input.is_joy_button_pressed(i, 0):
-				if (!get_node("Players").has_node(cytrill.get_name(i))):
-					print("Button has been presed!")
-					
+				if (!get_node("Players").has_node(cytrill.get_name(i)+str(i))):
 					print(cytrill.get_name(i) + " has joined the game!")
 					var player = pl_player.instance()
-					player.set_name(cytrill.get_name(i))
-					player.get_node("name_label").set_text(cytrill.get_name(i))
+					player.set_name(cytrill.get_name(i)+str(i))
 					player.set_global_pos(Vector2(rand_range(50, viewport_width - 50), rand_range(50, viewport_height - 50)))
 					player.set_rot(rand_range(-3.1415, 3.1415))
-					player.player_name = cytrill.get_name(i)
+					#player.player_name = cytrill.get_name(i)
+					player.player_name = str(pl_number)
+					player.get_node("name_label").set_text(player.player_name)
+					
 					player.player_color = Color(colarray[pl_number].r, colarray[pl_number].g, colarray[pl_number].b)
 					player.joystick_number = i
 					player.player_number = pl_number
