@@ -219,7 +219,7 @@ func gs_waitforplayers(delta):
 					print(cytrill.get_name(i) + " has joined the game!")
 					var player = pl_player.instance()
 					player.set_name(cytrill.get_name(i)+str(i))
-					player.set_global_pos(Vector2(rand_range(50, viewport_width - 50), rand_range(50, viewport_height - 50)))
+					player.set_global_pos(Vector2(rand_range(100, viewport_width - 100), rand_range(100, viewport_height - 100)))
 					player.set_rot(rand_range(-3.1415, 3.1415))
 					#player.player_name = cytrill.get_name(i)
 					player.player_name = str(pl_number)
